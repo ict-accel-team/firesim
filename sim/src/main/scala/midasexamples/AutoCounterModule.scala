@@ -48,6 +48,12 @@ class AutoCounterModuleDUT(
   val childInst = Module(new AutoCounterModuleChild)
   childInst.io.c := io.a
 
+  // Check that identity operation preserves the annotated target
+  val identityCounter = RegInit(0.U(64.W))
+  identityCounter := 0x01234567DEADBEEFL.U
+  PerfCounter.identity(identityCounter, "PASSTHROUGH", "A multibit that is preserved and not accumulated")
+
+
   //--------VALIDATION---------------
 
   val samplePeriod = 1000 / clockDivision
@@ -65,6 +71,7 @@ class AutoCounterModuleDUT(
     printf(s"${printfPrefix}PerfCounter ENABLED_DIV_4_${instPath}: %d\n", enabled4_printcount)
     printf(s"${printfPrefix}PerfCounter ODD_LFSR_${instPath}_childInst: %d\n", oddlfsr_printcount)
     printf(s"${printfPrefix}PerfCounter MULTIBIT_EVENT_${instPath}: %d\n", multibit_printcount)
+    printf(s"${printfPrefix}PerfCounter PASSTHROUGH_${instPath}: %d\n", identityCounter)
     printf(s"${printfPrefix}\n")
   }
 }
