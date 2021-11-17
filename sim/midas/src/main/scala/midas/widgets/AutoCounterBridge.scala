@@ -8,6 +8,8 @@ import freechips.rocketchip.config.{Parameters, Field}
 import freechips.rocketchip.diplomacy.AddressSet
 import freechips.rocketchip.util._
 
+import midas.targetutils.{PerfCounterOpType, PerfCounterOps}
+
 trait AutoCounterConsts {
   val counterWidth = 64
 }
@@ -21,7 +23,7 @@ trait AutoCounterConsts {
   *
   * @param width the bitwidth of the event
   */
-case class EventMetadata(portName: String, label: String, width: Int)
+case class EventMetadata(portName: String, label: String, width: Int, opType: PerfCounterOpType)
 
 class AutoCounterBundle(
     eventMetadata: Seq[EventMetadata],
@@ -83,13 +85,19 @@ class AutoCounterBridgeModule(
       cycles := cycles + 1.U
     }
 
-    val counters = hPort.hBits.events.unzip._2.map({ increment =>
-      val count = RegInit(0.U(counterWidth.W))
-      when (targetFire && !hPort.hBits.underGlobalReset) {
-        count := count + increment
+    val counters = for (((_, field), metadata) <- hPort.hBits.events.zip(eventMetadata)) yield {
+      metadata.opType match {
+        case PerfCounterOps.Accumulate =>
+          val count = RegInit(0.U(counterWidth.W))
+          when (targetFire && !hPort.hBits.underGlobalReset) {
+            count := count + field
+          }
+          count
+        // Under local reset indentity fields are zeroed out. This matches that behavior. 
+        case PerfCounterOps.Identity =>
+          Mux(hPort.hBits.underGlobalReset, 0.U, field).pad(counterWidth)
       }
-      count
-    }).toSeq
+    }
 
     val periodcycles = RegInit(0.U(64.W))
     val isSampleCycle = periodcycles === readrate

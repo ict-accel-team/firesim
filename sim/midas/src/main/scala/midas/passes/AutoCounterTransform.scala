@@ -86,7 +86,7 @@ class AutoCounterTransform extends Transform with AutoCounterConsts {
       val countType = UIntType(IntWidth(64))
       val zeroLit = UIntLiteral(0, IntWidth(64))
 
-      addedStmts ++= coverAnnos.flatMap({ case AutoCounterFirrtlAnnotation(target, clock, reset, label, _, _) =>
+      addedStmts ++= coverAnnos.flatMap { case AutoCounterFirrtlAnnotation(target, clock, reset, label, _, PerfCounterOps.Accumulate, _) =>
         val countName = moduleNS.newName(label + "_counter")
         val count = DefRegister(NoInfo, countName, countType, WRef(clock.ref), WRef(reset.ref), zeroLit)
         val nextName = moduleNS.newName(label + "_next")
@@ -105,7 +105,7 @@ class AutoCounterTransform extends Transform with AutoCounterConsts {
                               WRef(clock.ref), And(WRef(trigger), Neq(WRef(target.ref), zero)))
         addedAnnos += SynthPrintfAnnotation(Seq(Seq(mT.ref(countName))), mT, printFormat.string, Some(target.ref + "_print"))
         Seq(count, next, printStmt, countUpdate)
-      })
+      }
       m.copy(body = Block(m.body, addedStmts:_*))
     case o => o
   }
@@ -125,7 +125,7 @@ class AutoCounterTransform extends Transform with AutoCounterConsts {
       state: CircuitState,
       eventModuleMap: Map[String, Seq[AutoCounterFirrtlAnnotation]]): CircuitState = {
 
-    val labelMap = eventModuleMap.values.flatten.map(anno => anno.target -> anno.label).toMap
+    val sourceToAutoCounterAnnoMap = eventModuleMap.values.flatten.map(anno => anno.target -> anno).toMap
     val bridgeTopWiringAnnos = eventModuleMap.values.flatten.map(
       anno => BridgeTopWiringAnnotation(anno.target, anno.clock))
 
@@ -159,10 +159,15 @@ class AutoCounterTransform extends Transform with AutoCounterConsts {
       })
 
       val eventMetadata = oAnnos.map({ anno =>
-        val pathlessLabel = labelMap(anno.pathlessSource)
+        val autoCounterAnno = sourceToAutoCounterAnnoMap(anno.pathlessSource)
+        val pathlessLabel = autoCounterAnno.label
         val instPath = anno.absoluteSource.circuit +: anno.absoluteSource.asPath.map(_._1.value)
         val eventWidth = portWidthMap(anno.topSink.ref)
-        EventMetadata(anno.topSink.ref, (pathlessLabel +: instPath).mkString("_"), eventWidth)
+        EventMetadata(
+          anno.topSink.ref,
+          (pathlessLabel +: instPath).mkString("_"),
+          eventWidth,
+          autoCounterAnno.opType)
       })
 
       // Step 2b. Manually add boolean channels, to carry the trigger and
@@ -283,7 +288,7 @@ class AutoCounterTransform extends Transform with AutoCounterConsts {
     updatedState.copy(
       annotations = updatedState.annotations.filter {
         case AutoCounterCoverModuleFirrtlAnnotation(_) => false
-        case AutoCounterFirrtlAnnotation(_,_,_,_,_,_) => false
+        case AutoCounterFirrtlAnnotation(_,_,_,_,_,_,_) => false
         case o => true
       })
   }
