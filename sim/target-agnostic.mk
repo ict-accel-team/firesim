@@ -147,9 +147,9 @@ $(OUTPUT_DIR)/$(DESIGN).chain: $(VERILOG)
 $(PLATFORM) = $(OUTPUT_DIR)/$(DESIGN)-$(PLATFORM)
 $(PLATFORM): $($(PLATFORM)) $(OUTPUT_DIR)/$(DESIGN).chain
 
-fpga_dir = $(firesim_base_dir)/../platforms/$(PLATFORM)/aws-fpga
+f1_fpga_dir = $(firesim_base_dir)/../platforms/f1/aws-fpga
 
-$(f1): export CXXFLAGS := $(CXXFLAGS) $(common_cxx_flags) $(DRIVER_CXXOPTS) -I$(fpga_dir)/sdk/userspace/include
+$(f1): export CXXFLAGS := $(CXXFLAGS) $(common_cxx_flags) $(DRIVER_CXXOPTS) -I$(f1_fpga_dir)/sdk/userspace/include
 # Statically link libfesvr to make it easier to distribute drivers to f1 instances
 $(f1): export LDFLAGS := $(LDFLAGS) $(common_ld_flags) -lfpga_mgmt
 
@@ -176,7 +176,7 @@ $(nf): $(HEADER) $(DRIVER_CC) $(DRIVER_H) $(midas_cc) $(midas_h) $(runtime_conf)
 #############################
 # FPGA Build Initialization #
 #############################
-board_dir 	   := $(fpga_dir)/hdk/cl/developer_designs
+board_dir 	   := $(f1_fpga_dir)/hdk/cl/developer_designs
 fpga_work_dir  := $(board_dir)/cl_$(name_tuple)
 fpga_build_dir := $(fpga_work_dir)/build
 verif_dir      := $(fpga_work_dir)/verif
