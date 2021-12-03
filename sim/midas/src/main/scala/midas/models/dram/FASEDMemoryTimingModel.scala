@@ -628,3 +628,26 @@ object FASEDBridge {
     ep
   }
 }
+
+class MMIOBridge(argument: CompleteConfig)(implicit p: Parameters)
+    extends BlackBox with Bridge[HostPortIO[FASEDTargetIO], FASEDMemoryTimingModel] {
+  val io = IO(new FASEDTargetIO)
+  val bridgeIO = HostPort(io)
+  val constructorArg = Some(argument)
+  generateAnnotations()
+}
+
+object MMIOBridge {
+  def apply(clock: Clock, axi4: AXI4Bundle, reset: Bool, cfg: CompleteConfig)(implicit p: Parameters): MMIOBridge = {
+    val ep = Module(new MMIOBridge(cfg)(p.alterPartial({ case NastiKey => cfg.axi4Widths })))
+    ep.io.reset := reset
+    ep.io.clock := clock
+    // HACK: Nasti and Diplomatic have diverged to the point where it's no longer
+    // safe to emit a partial connect leaf fields.
+    AXI4NastiAssigner.toNasti(ep.io.axi4, axi4)
+    //import chisel3.ExplicitCompileOptions.NotStrict
+    //ep.io.axi4 <> axi4
+    ep
+  }
+}
+
