@@ -92,3 +92,10 @@ class BaseF1Config extends Config(
   new WithILATopWiringTransform ++
   new midas.F1Config
 )
+
+class BaseNFConfig extends Config(
+  new WithWiringTransform ++
+  new WithAsyncResetReplacement ++
+  new WithILATopWiringTransform ++
+  new midas.NFConfig
+)
