@@ -15,7 +15,7 @@ class simif_nf_t: public virtual simif_t
     uint32_t is_write_ready();
   private:
     volatile uintptr_t* dev_vaddr;
-    const static uintptr_t dev_paddr = 0x43C00000; 
+    const static uintptr_t dev_paddr = 0x82000000; 
     char in_buf[CTRL_BEAT_BYTES];
     char out_buf[CTRL_BEAT_BYTES];
   protected:

@@ -162,11 +162,11 @@ $(f1): $(HEADER) $(DRIVER_CC) $(DRIVER_H) $(midas_cc) $(midas_h) $(runtime_conf)
 	GEN_DIR=$(OUTPUT_DIR)/build OUT_DIR=$(OUTPUT_DIR) DRIVER="$(DRIVER_CC)" \
 	TOP_DIR=$(chipyard_dir)
 
-$(nf): export CXXFLAGS := $(CXXFLAGS) $(common_cxx_flags) $(DRIVER_CXXOPTS) 
+nf: export CXXFLAGS := $(CXXFLAGS) $(common_cxx_flags) $(DRIVER_CXXOPTS) 
 # link libfesvr to make it easier to distribute drivers to nf instances
-$(nf): export LDFLAGS := $(LDFLAGS) $(common_ld_flags) 
+nf: export LDFLAGS := $(LDFLAGS) $(common_ld_flags) 
 # Compile Driver
-$(nf): $(HEADER) $(DRIVER_CC) $(DRIVER_H) $(midas_cc) $(midas_h) $(runtime_conf)
+nf: $(HEADER) $(DRIVER_CC) $(DRIVER_H) $(midas_cc) $(midas_h) $(runtime_conf)
 	mkdir -p $(OUTPUT_DIR)/build
 	cp $(HEADER) $(OUTPUT_DIR)/build/
 	cp -f $(GENERATED_DIR)/$(CONF_NAME) $(OUTPUT_DIR)/runtime.conf
