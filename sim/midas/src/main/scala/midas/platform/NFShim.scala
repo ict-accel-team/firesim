@@ -18,7 +18,7 @@ class NFShimIO(implicit val p: Parameters) extends Bundle {
   //val dma    = Flipped(new NastiIO()(p alterPartial ({ case NastiKey => p(DMANastiKey) })))
 }
 
-class NFShim(implicit p: Parameters) extends PlatformShim {
+class firesim_top(implicit p: Parameters) extends PlatformShim {
   lazy val module = new LazyModuleImp(this) {
     val io = IO(new NFShimIO)
     val io_slave = IO(HeterogeneousBag(top.module.mem.map(x => x.cloneType)))

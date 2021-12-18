@@ -110,7 +110,7 @@ class F1Config extends Config(new Config((site, here, up) => {
 }) ++ new SimConfig)
 
 class NFConfig extends Config(new Config((site, here, up) => {
-  case Platform       => (p: Parameters) => new	NFShim()(p)
+  case Platform       => (p: Parameters) => new	firesim_top()(p)
   case HasDMAChannel  => false
   case CtrlNastiKey   => NastiParameters(32, 25, 12)
   case HostMemChannelKey => HostMemChannelParams(
