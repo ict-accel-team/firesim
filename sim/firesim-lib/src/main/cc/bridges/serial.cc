@@ -65,8 +65,10 @@ serial_t::~serial_t() {
 }
 
 void serial_t::init() {
+#ifndef USE_NO_SERIAL
     write(this->mmio_addrs->step_size, step_size);
     go();
+#endif
 }
 
 void serial_t::go() {
@@ -139,10 +141,12 @@ void serial_t::serial_bypass_via_loadmem() {
 }
 
 void serial_t::tick() {
+#ifndef USE_NO_SERIAL
     // First, check to see step_size tokens have been enqueued
     if (!read(this->mmio_addrs->done)) return;
     // Collect all the responses from the target
     this->recv();
+#endif
     // Punt to FESVR
     if (!fesvr->data_available()) {
         fesvr->tick();
@@ -150,11 +154,13 @@ void serial_t::tick() {
     if (fesvr->has_loadmem_reqs()) {
         serial_bypass_via_loadmem();
     }
+#ifndef USE_NO_SERIAL
     if (!terminate()) {
         // Write all the requests to the target
         this->send();
         go();
     }
+#endif
 }
 
 #endif // SERIALBRIDGEMODULE_struct_guard
