@@ -36,6 +36,10 @@ firesim_top_t::firesim_top_t(int argc, char** argv)
         if (arg.find("+zero-out-dram") == 0) {
             do_zero_out_dram = true;
         }
+	if (arg.find("+no-bootrom") == 0) {
+            no_bootrom = true;
+        }
+
     }
 
     add_bridge_driver(new heartbeat_t(this, args));
@@ -521,6 +525,10 @@ firesim_top_t::firesim_top_t(int argc, char** argv)
     if (profile_interval != -1) {
         register_task([this](){ return this->profile_models();}, 0);
     }
+
+    if (no_bootrom) {
+        custom_loadmem = new custom_loadmem_t(this,args,true,-2147483648LL);//main memory offset as 0x80000000
+    }
 }
 
 bool firesim_top_t::simulation_complete() {
@@ -560,7 +568,10 @@ void firesim_top_t::run() {
         fprintf(stderr, "Zeroing out FPGA DRAM. This will take a few minutes...\n");
         zero_out_dram();
     }
-
+    if (no_bootrom){
+        fprintf(stderr, "Loading workload to FPGA DRAM. This will take a few minutes...\n");
+	custom_loadmem->loadmem_by_serial();
+    }
     fprintf(stderr, "Commencing simulation.\n");
     record_start_times();
 

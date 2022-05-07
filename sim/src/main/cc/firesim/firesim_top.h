@@ -10,7 +10,7 @@
 #include "systematic_scheduler.h"
 
 #include "bridges/synthesized_prints.h"
-
+#include "bridges/load_mem.h"
 class firesim_top_t: virtual simif_t, public systematic_scheduler_t
 {
     public:
@@ -35,10 +35,12 @@ class firesim_top_t: virtual simif_t, public systematic_scheduler_t
         // profile interval: # of cycles to advance before profiling instrumentation registers in models
         uint64_t profile_interval = -1;
         uint64_t profile_models();
-
+	// load workload for target without bootrom
+        custom_loadmem_t *custom_loadmem;
         // If set, will write all zeros to fpga dram before commencing simulation
         bool do_zero_out_dram = false;
-
+        // If set, will call serial_load_mem() before reset target
+	bool no_bootrom = false;
         // Returns true if any bridge has signaled for simulation termination
         bool simulation_complete();
         // Returns the error code of the first bridge for which it is non-zero
